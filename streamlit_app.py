@@ -172,7 +172,7 @@ device = "cpu"
 # Load models
 unet_model = UNet(n_channels=3, n_classes=8)
 unet_model = unet_model.to(device)
-checkpoint = torch.load(f"./Models/{unet_model.name}.pt")
+checkpoint = torch.load(f"./Models/{unet_model.name}.pt", map_location=torch.device('cpu'))
 unet_model.load_state_dict(checkpoint['model_state_dict'])
 
 segFormer_huggingFace_b3 = SegformerForSemanticSegmentation.from_pretrained(
@@ -183,7 +183,7 @@ segFormer_huggingFace_b3 = SegformerForSemanticSegmentation.from_pretrained(
     )
 model = SegmentationModel(segFormer_huggingFace_b3, "b3")
 segformer = model.to(device)
-checkpoint = torch.load(f"./Models/{segformer.name}.pt")
+checkpoint = torch.load(f"./Models/{segformer.name}.pt", map_location=torch.device('cpu'))
 segformer.load_state_dict(checkpoint['model_state_dict'])
 
 # inference
