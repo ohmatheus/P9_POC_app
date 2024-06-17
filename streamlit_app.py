@@ -12,6 +12,7 @@ import pytorch_lightning as pl
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import SegformerForSemanticSegmentation
+from transformers import SegformerModel, SegformerConfig
 
 #-------------------------------------------------------------------
 categories = {  0: [0, 1, 2, 3, 4, 5, 6],                   #void
@@ -176,22 +177,23 @@ checkpoint = torch.load(f"./Models/{unet_model.name}.pt", map_location=torch.dev
 unet_model.load_state_dict(checkpoint['model_state_dict'])
 unet_model = unet_model.to(device)
 
-#segFormer_huggingFace_b3 = SegformerForSemanticSegmentation.from_pretrained(
+config = SegformerConfig(depths=[3, 4, 18, 3], hidden_sizes=[64, 128, 320, 512], decoder_hidden_size=768) #MiT-b3
+segFormer_huggingFace_b3 = SegformerForSemanticSegmentation.from_pretrained("./Models/")
 #        "nvidia/mit-b3",
 #        ignore_mismatched_sizes=True, 
 #        num_labels=8, 
 #        reshape_last_stage=True
 #    )
 #model = SegmentationModel(segFormer_huggingFace_b3, "b3")
-#segformer = model.to(device)
-#checkpoint = torch.load(f"./Models/{segformer.name}.pt", map_location=torch.device('cpu'))
-#segformer.load_state_dict(checkpoint['model_state_dict'])
-#segformer = unet_model.to(device)
+model = SegmentationModel(segFormer_huggingFace_b3, "b3")
+segformer = model.to(device)
+checkpoint = torch.load(f"./Models/{segformer.name}.pt", map_location=torch.device('cpu'))
+segformer.load_state_dict(checkpoint['model_state_dict'])
+segformer = segformer.to(device)
 
 # inference
 mask_unet = infer_to_mask(unet_model, option)
-mask_seg = infer_to_mask(unet_model, option)
-#mask_seg = infer_to_mask(segformer, option)
+mask_seg = infer_to_mask(segformer, option)
 
 col = st.columns((4.5, 4.5, 2), gap='medium')
 
