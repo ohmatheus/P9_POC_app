@@ -1,0 +1,9 @@
+numpy
+torch
+torchvision
+pytorch_lightning
+matplotlib
+pandas
+PIL
+streamlit
+transformers
