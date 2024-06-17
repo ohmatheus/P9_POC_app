@@ -93,7 +93,7 @@ def infer_to_mask(model, image_path) :
 
     model.eval()
     with torch.no_grad():
-        img = image.to(device=device, dtype=torch.float32)
+        img = image.to(device="cpu", dtype=torch.float32)
         pred = model(img).cpu()
         mask = pred.argmax(dim=1)
 
@@ -174,21 +174,24 @@ unet_model = UNet(n_channels=3, n_classes=8)
 unet_model = unet_model.to(device)
 checkpoint = torch.load(f"./Models/{unet_model.name}.pt", map_location=torch.device('cpu'))
 unet_model.load_state_dict(checkpoint['model_state_dict'])
+unet_model = unet_model.to(device)
 
-segFormer_huggingFace_b3 = SegformerForSemanticSegmentation.from_pretrained(
-        "nvidia/mit-b3",
-        ignore_mismatched_sizes=True, 
-        num_labels=8, 
-        reshape_last_stage=True
-    )
-model = SegmentationModel(segFormer_huggingFace_b3, "b3")
-segformer = model.to(device)
-checkpoint = torch.load(f"./Models/{segformer.name}.pt", map_location=torch.device('cpu'))
-segformer.load_state_dict(checkpoint['model_state_dict'])
+#segFormer_huggingFace_b3 = SegformerForSemanticSegmentation.from_pretrained(
+#        "nvidia/mit-b3",
+#        ignore_mismatched_sizes=True, 
+#        num_labels=8, 
+#        reshape_last_stage=True
+#    )
+#model = SegmentationModel(segFormer_huggingFace_b3, "b3")
+#segformer = model.to(device)
+#checkpoint = torch.load(f"./Models/{segformer.name}.pt", map_location=torch.device('cpu'))
+#segformer.load_state_dict(checkpoint['model_state_dict'])
+#segformer = unet_model.to(device)
 
 # inference
 mask_unet = infer_to_mask(unet_model, option)
-mask_seg = infer_to_mask(segformer, option)
+mask_seg = infer_to_mask(unet_model, option)
+#mask_seg = infer_to_mask(segformer, option)
 
 col = st.columns((4.5, 4.5, 2), gap='medium')
 
