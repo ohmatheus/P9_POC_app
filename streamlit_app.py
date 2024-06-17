@@ -105,6 +105,32 @@ def infer_to_mask(model, image_path) :
     return mask_colored
 
 #-------------------------------------------------------------------
+@st.cache_resource
+def load_models():
+    print("LOAD MOOODEEEEELLL")
+    unet_model = UNet(n_channels=3, n_classes=8)
+    unet_model = unet_model.to('cpu')
+    checkpoint = torch.load(f"./Models/{unet_model.name}.pt", map_location=torch.device('cpu'))
+    unet_model.load_state_dict(checkpoint['model_state_dict'])
+    unet_model = unet_model.to('cpu')
+
+    config = SegformerConfig(depths=[3, 4, 18, 3], hidden_sizes=[64, 128, 320, 512], decoder_hidden_size=768) #MiT-b3
+    segFormer_huggingFace_b3 = SegformerForSemanticSegmentation.from_pretrained("./Models/")
+    #        "nvidia/mit-b3",
+    #        ignore_mismatched_sizes=True, 
+    #        num_labels=8, 
+    #        reshape_last_stage=True
+    #    )
+    #model = SegmentationModel(segFormer_huggingFace_b3, "b3")
+    model = SegmentationModel(segFormer_huggingFace_b3, "b3")
+    segformer = model.to('cpu')
+    checkpoint = torch.load(f"./Models/{segformer.name}.pt", map_location=torch.device('cpu'))
+    segformer.load_state_dict(checkpoint['model_state_dict'])
+    segformer = segformer.to('cpu')
+    
+    return unet_model, segformer
+
+#-------------------------------------------------------------------
 #--------------------------- APP -----------------------------------
 #-------------------------------------------------------------------
 st.set_page_config(
@@ -171,25 +197,8 @@ option = st.selectbox('Selectionnez une image a inférer.', file_list)
 device = "cpu"
 
 # Load models
-unet_model = UNet(n_channels=3, n_classes=8)
-unet_model = unet_model.to(device)
-checkpoint = torch.load(f"./Models/{unet_model.name}.pt", map_location=torch.device('cpu'))
-unet_model.load_state_dict(checkpoint['model_state_dict'])
-unet_model = unet_model.to(device)
 
-config = SegformerConfig(depths=[3, 4, 18, 3], hidden_sizes=[64, 128, 320, 512], decoder_hidden_size=768) #MiT-b3
-segFormer_huggingFace_b3 = SegformerForSemanticSegmentation.from_pretrained("./Models/")
-#        "nvidia/mit-b3",
-#        ignore_mismatched_sizes=True, 
-#        num_labels=8, 
-#        reshape_last_stage=True
-#    )
-#model = SegmentationModel(segFormer_huggingFace_b3, "b3")
-model = SegmentationModel(segFormer_huggingFace_b3, "b3")
-segformer = model.to(device)
-checkpoint = torch.load(f"./Models/{segformer.name}.pt", map_location=torch.device('cpu'))
-segformer.load_state_dict(checkpoint['model_state_dict'])
-segformer = segformer.to(device)
+unet_model, segformer = load_models()
 
 # inference
 mask_unet = infer_to_mask(unet_model, option)
