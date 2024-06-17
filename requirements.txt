@@ -4,6 +4,6 @@ torchvision
 pytorch_lightning
 matplotlib
 pandas
-PIL
+pillow
 streamlit
 transformers
